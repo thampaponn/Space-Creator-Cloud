@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  email       String        @unique
+  studentId   String        @unique @map("student_id")
+  password    String
+  firstName   String        @map("first_name")
+  lastName    String        @map("last_name")
+  role        Role          @default(user)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @default(now()) @map("updated_at")
+  Reservation Reservation[]
+  Report      Report[]
+  Loging      Loging[]
+}
+
+enum Role {
+  admin
+  user
+}
+
+model Loging {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id")
+  method    String   @map("request_method")
+  url       String
+  createdAt DateTime @default(now()) @map("created_at")
+  User      User     @relation(fields: [userId], references: [studentId])
+}
+
+model Reservation {
+  id            Int               @id @default(autoincrement())
+  userId        Int               @map("user_id")
+  roomId        Int               @map("room_id")
+  dateTimeStart DateTime          @map("date_time_start")
+  dateTimeEnd   DateTime          @map("date_time_end")
+  detail        String?
+  status        ReservationStatus @default(pending)
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @default(now()) @map("updated_at")
+  User          User              @relation(fields: [userId], references: [id])
+  Room          Room              @relation(fields: [roomId], references: [id])
+}
+
+enum ReservationStatus {
+  pending
+  approved
+  rejected
+}
+
+model Room {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  floor       String
+  detail      String
+  description String
+  totalSeat   String
+  status      Boolean       @default(true)
+  Reservation Reservation[]
+  Report      Report[]
+}
+
+model Report {
+  id        Int          @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  roomId    Int          @map("room_id")
+  detail    String
+  status    ReportStatus @default(pending)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @default(now()) @map("updated_at")
+  User      User         @relation(fields: [userId], references: [id])
+  Room      Room         @relation(fields: [roomId], references: [id])
+}
+
+enum ReportStatus {
+  pending
+  done
+}
